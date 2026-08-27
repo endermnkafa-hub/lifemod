@@ -10,7 +10,6 @@ import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
 
 import net.mcreator.lifemod.network.LifeModModVariables;
 
@@ -39,19 +38,20 @@ public class PlayerModelHider {
             return;
         }
 
-        double gender = player
-                .getCapability(
+        LifeModModVariables.PlayerVariables variables =
+                clientPlayer.getCapability(
                         LifeModModVariables.PLAYER_VARIABLES_CAPABILITY,
                         null
-                )
-                .orElse(
-                        new LifeModModVariables.PlayerVariables()
-                )
-                .gender;
+                ).orElse(null);
+
+        if (variables == null) {
+            return;
+        }
+
+        double gender = variables.gender;
 
         /*
-         * gender = 0:
-         * Oyuncunun normal Minecraft modeli kullanılmaya devam eder.
+         * gender 0 = vanilla oyuncu modeli
          */
         if (gender == 0) {
             return;
@@ -59,6 +59,10 @@ public class PlayerModelHider {
 
         /*
          * Vanilla oyuncu modelini gizle.
+         *
+         * Kafa ve şapka BURADA gizlenmiyor.
+         * Custom model kendi kafasını çiziyorsa zaten
+         * vanilla modelin tamamını gizlememiz gerekiyor.
          */
         PlayerModel<AbstractClientPlayer> model =
                 event.getRenderer().getModel();
@@ -80,15 +84,15 @@ public class PlayerModelHider {
         model.leftPants.visible = false;
 
         /*
-         * Custom model kendi kafasını/gövdesini çizdiği için
-         * vanilla kafa da gizleniyor.
+         * Kafa da custom model tarafından çizileceği için
+         * vanilla kafayı gizle.
+         *
+         * Önceki kodda kafa görünmüyordu çünkü custom modelin
+         * kendisi doğru pozisyona oturmamıştı.
          */
         model.head.visible = false;
         model.hat.visible = false;
 
-        /*
-         * Oyuncuya ait animatable nesneyi al.
-         */
         UUID uuid = clientPlayer.getUUID();
 
         boolean isMale = gender == 1;
@@ -105,9 +109,6 @@ public class PlayerModelHider {
                                 );
                             }
 
-                            /*
-                             * Cinsiyet değiştiğinde yeni model oluştur.
-                             */
                             if (old.isMale() != isMale) {
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
@@ -119,27 +120,29 @@ public class PlayerModelHider {
                         }
                 );
 
-        /*
-         * Animasyon hareket bilgisini güncelle.
-         */
         animatable.updateMovement(event.getPartialTick());
 
-        /*
-         * Oyuncunun gerçek rotasyonunu custom modele aktar.
-         */
         PoseStack poseStack = event.getPoseStack();
 
         poseStack.pushPose();
 
-        poseStack.mulPose(
-                com.mojang.math.Axis.YP.rotationDegrees(
-                        180.0F - clientPlayer.getYRot()
-                )
-        );
+        /*
+         * RenderPlayerEvent.Pre zaten oyuncunun dünya konumunda
+         * ve oyuncuya göre doğru dönüşte çalışır.
+         *
+         * Bu yüzden önceki:
+         *
+         * 180 - player.getYRot()
+         *
+         * dönüşünü kullanmıyoruz.
+         */
 
         /*
-         * Modelin Minecraft koordinat sistemine oturması için
-         * başlangıç noktası.
+         * GeckoLib modeli Minecraft oyuncu modelinin merkezine
+         * göre çizilir.
+         *
+         * Geo modelin pivotu oyuncunun ayak merkezindeyse
+         * Y = 0 doğru konumdur.
          */
         poseStack.translate(
                 0.0D,
@@ -147,32 +150,52 @@ public class PlayerModelHider {
                 0.0D
         );
 
-        /*
-         * Erkek / kadın renderer seç.
-         */
         if (isMale) {
 
-    MALE_RENDERER.renderPlayerModel(
-            animatable,
-            poseStack,
-            event.getMultiBufferSource(),
-            event.getPackedLight(),
-            0,
-            event.getPartialTick()
-    );
+            MALE_RENDERER.renderPlayerModel(
+                    animatable,
+                    poseStack,
+                    event.getMultiBufferSource(),
+                    event.getPackedLight(),
+                    event.getPackedOverlay(),
+                    event.getPartialTick()
+            );
 
-} else {
+        } else {
 
-    FEMALE_RENDERER.renderPlayerModel(
-            animatable,
-            poseStack,
-            event.getMultiBufferSource(),
-            event.getPackedLight(),
-            0,
-            event.getPartialTick()
-    );
-}
+            FEMALE_RENDERER.renderPlayerModel(
+                    animatable,
+                    poseStack,
+                    event.getMultiBufferSource(),
+                    event.getPackedLight(),
+                    event.getPackedOverlay(),
+                    event.getPartialTick()
+            );
+        }
 
         poseStack.popPose();
+
+        /*
+         * Vanilla model görünürlüğünü sonraki frame için
+         * tekrar aç.
+         */
+        model.body.visible = true;
+
+        model.rightArm.visible = true;
+        model.leftArm.visible = true;
+
+        model.rightLeg.visible = true;
+        model.leftLeg.visible = true;
+
+        model.jacket.visible = true;
+
+        model.rightSleeve.visible = true;
+        model.leftSleeve.visible = true;
+
+        model.rightPants.visible = true;
+        model.leftPants.visible = true;
+
+        model.head.visible = true;
+        model.hat.visible = true;
     }
 }
