@@ -212,9 +212,9 @@ public class PlayerModelHider {
         if (male) {
 
             poseStack.translate(
-                    0.0D / 0.1D,
+                    0.0D / -1.0D,
                     0.0D,
-                    0.0D / 0.1D
+                    0.0D / -1.0D
             );
 
             MALE_RENDERER.renderPlayerModel(
