@@ -1,0 +1,186 @@
+{
+  "mod_elements": [
+    {
+      "name": "MaleButton",
+      "type": "procedure",
+      "sortid": 2,
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "male_button",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/procedures/MaleButtonProcedure.java"
+        ],
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FemaleButton",
+      "type": "procedure",
+      "sortid": 1,
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "female_button",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/procedures/FemaleButtonProcedure.java"
+        ],
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GenderGui",
+      "type": "gui",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "gender_gui",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/world/inventory/GenderGuiMenu.java",
+          "src/main/java/net/mcreator/lifemod/network/GenderGuiButtonMessage.java",
+          "src/main/java/net/mcreator/lifemod/client/gui/GenderGuiScreen.java"
+        ]
+      }
+    },
+    {
+      "name": "PlayerJoinWorld",
+      "type": "procedure",
+      "sortid": 3,
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "player_join_world",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/procedures/PlayerJoinWorldProcedure.java"
+        ],
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Reselectgender",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "reselectgender",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/item/ReselectgenderItem.java",
+          "src/main/resources/assets/life_mod/models/item/reselectgender.json"
+        ]
+      }
+    },
+    {
+      "name": "ReselectgenderRightclicked",
+      "type": "procedure",
+      "sortid": 4,
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "reselectgender_rightclicked",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/procedures/ReselectgenderRightclickedProcedure.java"
+        ],
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "itemstack",
+            "type": "itemstack"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ]
+      }
+    }
+  ],
+  "variable_elements": [
+    {
+      "name": "gender",
+      "type": "number",
+      "scope": "player_persistent",
+      "value": "0.0"
+    }
+  ],
+  "sound_elements": [],
+  "language_map": {
+    "en_us": {
+      "gui.life_mod.gender_gui.button_female": "Female",
+      "gui.life_mod.gender_gui.label_what_is_yor_gender": "What is yor gender?",
+      "gui.life_mod.gender_gui.button_male": "Male",
+      "item.life_mod.reselectgender": "Reselect gender"
+    }
+  },
+  "foldersRoot": {
+    "name": "~",
+    "children": []
+  },
+  "workspaceSettings": {
+    "modid": "life_mod",
+    "modName": "life mod",
+    "version": "1.0.0",
+    "author": "muhammed kılıç, MCreator",
+    "websiteURL": "https://mcreator.net",
+    "license": "Academic Free License v3.0",
+    "disableForgeVersionCheck": true,
+    "serverSideOnly": false,
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "mcreatorDependencies": [
+      "curios_api",
+      "geckolib"
+    ],
+    "currentGenerator": "forge-1.20.1",
+    "credits": "Created using mod maker MCreator - https://mcreator.net/about",
+    "modElementsPackage": "net.mcreator.lifemod",
+    "lockBaseModFiles": false
+  },
+  "mcreatorVersion": 202300452316
+}

@@ -1,0 +1,67 @@
+{
+  "_fv": 57,
+  "_type": "gui",
+  "definition": {
+    "type": 0,
+    "width": 176,
+    "height": 166,
+    "inventoryOffsetX": 0,
+    "inventoryOffsetY": 0,
+    "renderBgLayer": true,
+    "doesPauseGame": false,
+    "components": [
+      {
+        "type": "label",
+        "data": {
+          "name": "label_what_is_yor_gender",
+          "text": {
+            "fixedValue": "What is yor gender?"
+          },
+          "color": {
+            "value": -12829636,
+            "falpha": 0.0
+          },
+          "x": 164,
+          "y": 58
+        }
+      },
+      {
+        "type": "button",
+        "data": {
+          "name": "button_male",
+          "text": "Male",
+          "isUndecorated": false,
+          "onClick": {
+            "name": "MaleButton"
+          },
+          "width": 46,
+          "height": 20,
+          "x": 136,
+          "y": 133
+        }
+      },
+      {
+        "type": "button",
+        "data": {
+          "name": "button_female",
+          "text": "Female",
+          "isUndecorated": false,
+          "onClick": {
+            "name": "FemaleButton"
+          },
+          "width": 56,
+          "height": 20,
+          "x": 235,
+          "y": 133
+        }
+      }
+    ],
+    "gridSettings": {
+      "sx": 18,
+      "sy": 18,
+      "ox": 11,
+      "oy": 15,
+      "snapOnGrid": false
+    }
+  }
+}
