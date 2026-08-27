@@ -1,10 +1,12 @@
 package net.mcreator.lifemod.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,117 +25,57 @@ public class PlayerModelHider {
 
     /*
      * ============================================================
-     * MODEL POZİSYONU
+     * MODEL POZİSYONLARI
      * ============================================================
      *
-     * Bu değerler oyun içerisinde /lifemodmodel komutuyla
-     * değiştirilebilir.
+     * Erkek:
+     * X = -0.75
+     * Y = -0.60
+     * Z = -0.60
      *
-     * 1.0 = 1 Minecraft bloğu
+     * Kadın:
+     * X = -0.50
+     * Y = -0.60
+     * Z = -0.50
      *
-     * X:
-     * + sağ
-     * - sol
-     *
-     * Y:
-     * + yukarı
-     * - aşağı
-     *
-     * Z:
-     * + öne
-     * - arkaya
-     *
-     * ============================================================
+     * Bunlar Minecraft render birimidir.
      */
 
-    private static double maleX = 0.0D;
-    private static double maleY = 0.0D;
-    private static double maleZ = 0.0D;
+    private static final double MALE_X = -0.75D;
+    private static final double MALE_Y = -0.60D;
+    private static final double MALE_Z = -0.60D;
 
-    private static double femaleX = 0.0D;
-    private static double femaleY = 0.0D;
-    private static double femaleZ = 0.0D;
+    private static final double FEMALE_X = -0.50D;
+    private static final double FEMALE_Y = -0.60D;
+    private static final double FEMALE_Z = -0.50D;
 
 
     /*
      * ============================================================
-     * POZİSYON GETİRİCİLER
+     * MODEL YÖNÜ
      * ============================================================
+     *
+     * Minecraft'ın RenderPlayer sistemi zaten oyuncunun gövde
+     * dönüşünü PoseStack'e uyguluyor.
+     *
+     * Burada sadece kafa ile gövde arasındaki bakış farkını
+     * ekliyoruz.
+     *
+     * Böylece:
+     *
+     * - Oyuncu sağa bakarsa model sağa bakar.
+     * - Oyuncu sola bakarsa model sola bakar.
+     * - Oyuncu yürürken model gövde yönünü korur.
+     * - Kamera/kafa gövdeye göre çevrilince model de buna uyar.
+     *
+     * Eğer Blockbench modelinin önü ters ise sadece:
+     *
+     * MODEL_FORWARD_ROTATION = 180.0F
+     *
+     * yapılabilir.
      */
 
-    public static double getMaleX() {
-        return maleX;
-    }
-
-    public static double getMaleY() {
-        return maleY;
-    }
-
-    public static double getMaleZ() {
-        return maleZ;
-    }
-
-    public static double getFemaleX() {
-        return femaleX;
-    }
-
-    public static double getFemaleY() {
-        return femaleY;
-    }
-
-    public static double getFemaleZ() {
-        return femaleZ;
-    }
-
-
-    /*
-     * ============================================================
-     * POZİSYON AYARLAYICILAR
-     * ============================================================
-     */
-
-    public static void setMaleX(double value) {
-        maleX = value;
-    }
-
-    public static void setMaleY(double value) {
-        maleY = value;
-    }
-
-    public static void setMaleZ(double value) {
-        maleZ = value;
-    }
-
-    public static void setFemaleX(double value) {
-        femaleX = value;
-    }
-
-    public static void setFemaleY(double value) {
-        femaleY = value;
-    }
-
-    public static void setFemaleZ(double value) {
-        femaleZ = value;
-    }
-
-
-    /*
-     * ============================================================
-     * SIFIRLAMA
-     * ============================================================
-     */
-
-    public static void resetMalePosition() {
-        maleX = 0.0D;
-        maleY = 0.0D;
-        maleZ = 0.0D;
-    }
-
-    public static void resetFemalePosition() {
-        femaleX = 0.0D;
-        femaleY = 0.0D;
-        femaleZ = 0.0D;
-    }
+    private static final float MODEL_FORWARD_ROTATION = 0.0F;
 
 
     /*
@@ -161,7 +103,7 @@ public class PlayerModelHider {
 
     /*
      * ============================================================
-     * VANILLA MODEL GÖRÜNÜRLÜK DURUMU
+     * VANILLA MODEL GÖRÜNÜRLÜKLERİ
      * ============================================================
      */
 
@@ -194,7 +136,7 @@ public class PlayerModelHider {
 
     /*
      * ============================================================
-     * PLAYER RENDER PRE
+     * PLAYER PRE RENDER
      * ============================================================
      */
 
@@ -213,9 +155,9 @@ public class PlayerModelHider {
          * GENDER
          * ========================================================
          *
-         * 0 = vanilla
-         * 1 = erkek
-         * 2 = kadın
+         * 0 = Vanilla
+         * 1 = Erkek
+         * 2 = Kadın
          */
 
         LifeModModVariables.PlayerVariables variables =
@@ -239,7 +181,7 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * VANILLA PLAYER MODEL
+         * VANILLA PLAYER RENDERER
          * ========================================================
          */
 
@@ -249,69 +191,54 @@ public class PlayerModelHider {
         PlayerModel<AbstractClientPlayer> model =
                 renderer.getModel();
 
-
         UUID uuid =
                 clientPlayer.getUUID();
 
 
         /*
          * ========================================================
-         * ESKİ GÖRÜNÜRLÜKLERİ SAKLA
+         * MEVCUT VANILLA MODEL DURUMUNU SAKLA
          * ========================================================
          */
 
         ModelVisibilityState oldState =
                 new ModelVisibilityState();
 
-        oldState.head =
-                model.head.visible;
+        oldState.head = model.head.visible;
+        oldState.hat = model.hat.visible;
 
-        oldState.hat =
-                model.hat.visible;
+        oldState.body = model.body.visible;
 
-        oldState.body =
-                model.body.visible;
+        oldState.rightArm = model.rightArm.visible;
+        oldState.leftArm = model.leftArm.visible;
 
-        oldState.rightArm =
-                model.rightArm.visible;
+        oldState.rightLeg = model.rightLeg.visible;
+        oldState.leftLeg = model.leftLeg.visible;
 
-        oldState.leftArm =
-                model.leftArm.visible;
+        oldState.jacket = model.jacket.visible;
 
-        oldState.rightLeg =
-                model.rightLeg.visible;
+        oldState.rightSleeve = model.rightSleeve.visible;
+        oldState.leftSleeve = model.leftSleeve.visible;
 
-        oldState.leftLeg =
-                model.leftLeg.visible;
+        oldState.rightPants = model.rightPants.visible;
+        oldState.leftPants = model.leftPants.visible;
 
-        oldState.jacket =
-                model.jacket.visible;
-
-        oldState.rightSleeve =
-                model.rightSleeve.visible;
-
-        oldState.leftSleeve =
-                model.leftSleeve.visible;
-
-        oldState.rightPants =
-                model.rightPants.visible;
-
-        oldState.leftPants =
-                model.leftPants.visible;
-
-
-        VISIBILITY_STATES.put(
-                uuid,
-                oldState
-        );
+        VISIBILITY_STATES.put(uuid, oldState);
 
 
         /*
          * ========================================================
-         * KAFA
+         * VANILLA KAFA
          * ========================================================
          *
-         * Vanilla Minecraft kafası görünür kalıyor.
+         * KAFA GÖRÜNÜR.
+         *
+         * Kullanıcının istediği:
+         *
+         *     KAFA -> GÖRÜNSÜN
+         *     GÖVDE -> GİZLİ
+         *     KOLLAR -> GİZLİ
+         *     BACAKLAR -> GİZLİ
          */
 
         model.head.visible = true;
@@ -320,7 +247,7 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * VANILLA VÜCUT PARÇALARINI GİZLE
+         * VANILLA GÖVDE
          * ========================================================
          */
 
@@ -353,7 +280,6 @@ public class PlayerModelHider {
                         (id, old) -> {
 
                             if (old == null) {
-
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
@@ -361,7 +287,6 @@ public class PlayerModelHider {
                             }
 
                             if (old.isMale() != male) {
-
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
@@ -375,16 +300,14 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * ANİMASYON GÜNCELLE
+         * ANİMASYON DURUMUNU GÜNCELLE
          * ========================================================
          */
 
         float partialTick =
                 event.getPartialTick();
 
-        animatable.updateMovement(
-                partialTick
-        );
+        animatable.updateMovement(partialTick);
 
 
         /*
@@ -408,10 +331,66 @@ public class PlayerModelHider {
         if (male) {
 
             poseStack.translate(
-                    maleX,
-                    maleY,
-                    maleZ
+                    MALE_X,
+                    MALE_Y,
+                    MALE_Z
             );
+
+        } else {
+
+            poseStack.translate(
+                    FEMALE_X,
+                    FEMALE_Y,
+                    FEMALE_Z
+            );
+        }
+
+
+        /*
+         * ========================================================
+         * OYUNCUNUN BAKTIĞI YÖNE GÖRE DÖNÜŞ
+         * ========================================================
+         *
+         * RenderPlayer zaten body yaw'ı uyguladığı için burada
+         * yalnızca HEAD YAW - BODY YAW farkını uyguluyoruz.
+         */
+
+        float bodyYaw = Mth.rotLerp(
+                partialTick,
+                clientPlayer.yBodyRotO,
+                clientPlayer.yBodyRot
+        );
+
+        float headYaw = Mth.rotLerp(
+                partialTick,
+                clientPlayer.yHeadRotO,
+                clientPlayer.yHeadRot
+        );
+
+        float relativeHeadYaw =
+                Mth.wrapDegrees(headYaw - bodyYaw);
+
+
+        /*
+         * ========================================================
+         * MODEL BAKIŞ DÖNÜŞÜ
+         * ========================================================
+         */
+
+        poseStack.mulPose(
+                Axis.YP.rotationDegrees(
+                        relativeHeadYaw + MODEL_FORWARD_ROTATION
+                )
+        );
+
+
+        /*
+         * ========================================================
+         * CUSTOM MODEL RENDER
+         * ========================================================
+         */
+
+        if (male) {
 
             MALE_RENDERER.renderPlayerModel(
                     animatable,
@@ -423,12 +402,6 @@ public class PlayerModelHider {
             );
 
         } else {
-
-            poseStack.translate(
-                    femaleX,
-                    femaleY,
-                    femaleZ
-            );
 
             FEMALE_RENDERER.renderPlayerModel(
                     animatable,
@@ -453,7 +426,7 @@ public class PlayerModelHider {
 
     /*
      * ============================================================
-     * PLAYER RENDER POST
+     * PLAYER POST RENDER
      * ============================================================
      */
 
@@ -467,10 +440,8 @@ public class PlayerModelHider {
             return;
         }
 
-
         UUID uuid =
                 clientPlayer.getUUID();
-
 
         ModelVisibilityState oldState =
                 VISIBILITY_STATES.remove(uuid);
