@@ -1,19 +1,20 @@
 package net.mcreator.lifemod.client;
 
 import net.minecraft.client.player.AbstractClientPlayer;
+
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.util.GeckoLibUtil;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class PlayerModelAnimatable implements GeoAnimatable {
 
     private final AbstractClientPlayer player;
-    private final boolean isMale;
+    private final boolean male;
 
     private final AnimatableInstanceCache cache =
             GeckoLibUtil.createInstanceCache(this);
@@ -21,9 +22,12 @@ public class PlayerModelAnimatable implements GeoAnimatable {
     private boolean moving;
     private boolean sprinting;
 
-    public PlayerModelAnimatable(AbstractClientPlayer player, boolean isMale) {
+    public PlayerModelAnimatable(
+            AbstractClientPlayer player,
+            boolean male
+    ) {
         this.player = player;
-        this.isMale = isMale;
+        this.male = male;
     }
 
     public AbstractClientPlayer getPlayer() {
@@ -31,17 +35,31 @@ public class PlayerModelAnimatable implements GeoAnimatable {
     }
 
     public boolean isMale() {
-        return isMale;
+        return male;
     }
 
+    /**
+     * Minecraft'ın gerçek hareket bilgisini günceller.
+     */
     public void updateMovement(float partialTick) {
-        double dx = player.getX() - player.xo;
-        double dz = player.getZ() - player.zo;
 
-        double speed = dx * dx + dz * dz;
+        double vx = player.getDeltaMovement().x;
+        double vz = player.getDeltaMovement().z;
 
-        this.moving = speed > 0.00005D;
-        this.sprinting = this.moving && player.isSprinting();
+        double horizontalSpeed =
+                vx * vx + vz * vz;
+
+        /*
+         * Oyuncunun gerçekten hareket edip etmediğini
+         * velocity üzerinden kontrol ediyoruz.
+         */
+        this.moving =
+                horizontalSpeed > 0.0001D
+                        && !player.isPassenger();
+
+        this.sprinting =
+                moving
+                        && player.isSprinting();
     }
 
     public boolean isMoving() {
@@ -56,11 +74,12 @@ public class PlayerModelAnimatable implements GeoAnimatable {
     public void registerControllers(
             AnimatableManager.ControllerRegistrar controllers
     ) {
+
         controllers.add(
                 new AnimationController<>(
                         this,
-                        "movement",
-                        2,
+                        "player_movement",
+                        0,
                         this::movementPredicate
                 )
         );
@@ -69,39 +88,55 @@ public class PlayerModelAnimatable implements GeoAnimatable {
     private PlayState movementPredicate(
             AnimationState<PlayerModelAnimatable> state
     ) {
-        if (sprinting) {
+
+        /*
+         * ERKEK MODEL
+         */
+        if (male) {
+
+            if (sprinting) {
+
+                state.getController().setAnimation(
+                        RawAnimation.begin()
+                                .thenLoop("male.sprint")
+                );
+
+                return PlayState.CONTINUE;
+            }
+
+            if (moving) {
+
+                state.getController().setAnimation(
+                        RawAnimation.begin()
+                                .thenLoop("male.walk")
+                );
+
+                return PlayState.CONTINUE;
+            }
+
             state.getController().setAnimation(
                     RawAnimation.begin()
-                            .thenLoop(
-                                    isMale
-                                            ? "male.sprint"
-                                            : "female.sprint"
-                            )
+                            .thenLoop("male.idle")
             );
 
             return PlayState.CONTINUE;
         }
 
-        if (moving) {
-            state.getController().setAnimation(
-                    RawAnimation.begin()
-                            .thenLoop(
-                                    isMale
-                                            ? "male.walk"
-                                            : "female.walk"
-                            )
-            );
-
-            return PlayState.CONTINUE;
-        }
-
+        /*
+         * KADIN MODEL
+         *
+         * female.animation.json içinde güvenli ve mevcut
+         * olarak doğruladığımız karakter animasyonu:
+         *
+         * animation.jenny.fhappy
+         *
+         * Dosyada Minecraft tipi female.walk/female.sprint
+         * isimleri bulunmadığından olmayan animasyonları
+         * çağırmıyoruz.
+         */
         state.getController().setAnimation(
                 RawAnimation.begin()
-                        .thenLoop(
-                                isMale
-                                        ? "male.idle"
-                                        : "female.idle"
-                        )
+                        .thenLoop("animation.jenny.fhappy")
         );
 
         return PlayState.CONTINUE;
