@@ -56,9 +56,7 @@ public class PlayerModelHider {
     }
 
     @SubscribeEvent
-    public static void onRenderPlayerPre(
-            RenderPlayerEvent.Pre event
-    ) {
+    public static void onRenderPlayerPre(RenderPlayerEvent.Pre event) {
 
         Player player = event.getEntity();
 
@@ -99,6 +97,9 @@ public class PlayerModelHider {
 
         UUID uuid = clientPlayer.getUUID();
 
+        /*
+         * Mevcut vanilla model görünürlüklerini sakla.
+         */
         ModelVisibilityState oldState =
                 new ModelVisibilityState();
 
@@ -124,17 +125,24 @@ public class PlayerModelHider {
         VISIBILITY_STATES.put(uuid, oldState);
 
         /*
-         * VANILLA KAFA
+         * =====================================================
+         * KAFA
+         * =====================================================
          *
-         * Kafa tamamen vanilla Minecraft tarafından
-         * çizilecek.
+         * Vanilla kafa kullanılacak.
+         *
+         * Custom GeoModel'in kendi kafa parçaları varsa onların
+         * görünürlüğü model/geo tarafından kontrol edilir.
          */
         model.head.visible = true;
         model.hat.visible = true;
 
         /*
-         * Vanilla gövde ve uzuvları kapat.
+         * =====================================================
+         * VANILLA GÖVDEYİ GİZLE
+         * =====================================================
          */
+
         model.body.visible = false;
 
         model.rightArm.visible = false;
@@ -152,8 +160,11 @@ public class PlayerModelHider {
         model.leftPants.visible = false;
 
         /*
-         * Animatable oluştur / güncelle.
+         * =====================================================
+         * GECKOLIB ANIMATABLE
+         * =====================================================
          */
+
         PlayerModelAnimatable animatable =
                 ANIMATABLES.compute(
                         uuid,
@@ -189,32 +200,36 @@ public class PlayerModelHider {
 
         /*
          * =====================================================
-         * MODEL POZİSYONU
+         * MODEL ROOT HİZALAMA
          * =====================================================
          *
-         * Erkek Blockbench root:
+         * Minecraft:
          *
-         * X = -4 px
-         * Y =  0 px
-         * Z = +1.7 px
+         * 1 blok = 16 pixel
          *
-         * Minecraft merkezine oturtmak için ters offset:
+         * ERKEK ROOT:
+         *
+         * Blockbench:
+         * X = -4
+         * Y =  0
+         * Z = +1.7
+         *
+         * Root'u Minecraft oyuncu merkezine getirmek için
+         * tersine çeviriyoruz:
          *
          * X = +4 px
+         * Y =  0 px
          * Z = -1.7 px
          *
-         * 16 px = 1 Minecraft block.
-         *
-         * Kadın modelinin root'u zaten 0,0,0 olduğu için
-         * kadın modele bu offset uygulanmıyor.
+         * =====================================================
          */
 
         if (male) {
 
             poseStack.translate(
-                    0.0D / -1.0D,
+                    4.0D / 16.0D,
                     0.0D,
-                    0.0D / -1.0D
+                    -1.7D / 16.0D
             );
 
             MALE_RENDERER.renderPlayerModel(
@@ -227,6 +242,14 @@ public class PlayerModelHider {
             );
 
         } else {
+
+            /*
+             * Kadın modelinin root'u:
+             *
+             * [0, 0, 0]
+             *
+             * Bu yüzden ekstra translation yok.
+             */
 
             FEMALE_RENDERER.renderPlayerModel(
                     animatable,
@@ -242,9 +265,7 @@ public class PlayerModelHider {
     }
 
     @SubscribeEvent
-    public static void onRenderPlayerPost(
-            RenderPlayerEvent.Post event
-    ) {
+    public static void onRenderPlayerPost(RenderPlayerEvent.Post event) {
 
         Player player = event.getEntity();
 
@@ -269,8 +290,9 @@ public class PlayerModelHider {
                 renderer.getModel();
 
         /*
-         * Vanilla model görünürlüklerini eski haline getir.
+         * Vanilla model görünürlüklerini geri yükle.
          */
+
         model.head.visible =
                 oldState.head;
 
