@@ -226,11 +226,34 @@ public class PlayerModelHider {
 
         if (male) {
 
-            poseStack.translate(
-                    4.0D / 16.0D,
-                    0.0D,
-                    -1.7D / 16.0D
-            );
+            poseStack.pushPose();
+
+if (male) {
+
+    // Erkek model: Blockbench'teki orijinal root konumu
+    MALE_RENDERER.renderPlayerModel(
+            animatable,
+            poseStack,
+            event.getMultiBufferSource(),
+            event.getPackedLight(),
+            0,
+            partialTick
+    );
+
+} else {
+
+    // Kadın model: Blockbench'teki orijinal root konumu
+    FEMALE_RENDERER.renderPlayerModel(
+            animatable,
+            poseStack,
+            event.getMultiBufferSource(),
+            event.getPackedLight(),
+            0,
+            partialTick
+    );
+}
+
+poseStack.popPose();
 
             MALE_RENDERER.renderPlayerModel(
                     animatable,
