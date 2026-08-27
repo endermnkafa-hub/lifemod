@@ -1,3 +1,4 @@
+```java
 package net.mcreator.lifemod.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -25,29 +26,34 @@ public class PlayerModelHider {
 
     /*
      * ============================================================
-     * MODEL POZİSYONLARI
+     * DEFAULT MODEL POZİSYONLARI
      * ============================================================
-     *
-     * Erkek:
-     * X = -0.75
-     * Y = -0.60
-     * Z = -0.60
-     *
-     * Kadın:
-     * X = -0.50
-     * Y = -0.60
-     * Z = -0.50
-     *
-     * Bunlar Minecraft render birimidir.
      */
 
-    private static final double MALE_X = -0.75D;
-    private static final double MALE_Y = -0.60D;
-    private static final double MALE_Z = -0.60D;
+    private static final double DEFAULT_MALE_X = -0.75D;
+    private static final double DEFAULT_MALE_Y = -0.60D;
+    private static final double DEFAULT_MALE_Z = -0.60D;
 
-    private static final double FEMALE_X = -0.50D;
-    private static final double FEMALE_Y = -0.60D;
-    private static final double FEMALE_Z = -0.50D;
+    private static final double DEFAULT_FEMALE_X = -0.50D;
+    private static final double DEFAULT_FEMALE_Y = -0.60D;
+    private static final double DEFAULT_FEMALE_Z = -0.50D;
+
+
+    /*
+     * ============================================================
+     * AKTİF MODEL POZİSYONLARI
+     * ============================================================
+     *
+     * LifeModModelCommand.java bu değerleri değiştirebilir.
+     */
+
+    private static double maleX = DEFAULT_MALE_X;
+    private static double maleY = DEFAULT_MALE_Y;
+    private static double maleZ = DEFAULT_MALE_Z;
+
+    private static double femaleX = DEFAULT_FEMALE_X;
+    private static double femaleY = DEFAULT_FEMALE_Y;
+    private static double femaleZ = DEFAULT_FEMALE_Z;
 
 
     /*
@@ -55,24 +61,10 @@ public class PlayerModelHider {
      * MODEL YÖNÜ
      * ============================================================
      *
-     * Minecraft'ın RenderPlayer sistemi zaten oyuncunun gövde
-     * dönüşünü PoseStack'e uyguluyor.
+     * Model Blockbench'te ters bakıyorsa:
      *
-     * Burada sadece kafa ile gövde arasındaki bakış farkını
-     * ekliyoruz.
-     *
-     * Böylece:
-     *
-     * - Oyuncu sağa bakarsa model sağa bakar.
-     * - Oyuncu sola bakarsa model sola bakar.
-     * - Oyuncu yürürken model gövde yönünü korur.
-     * - Kamera/kafa gövdeye göre çevrilince model de buna uyar.
-     *
-     * Eğer Blockbench modelinin önü ters ise sadece:
-     *
-     * MODEL_FORWARD_ROTATION = 180.0F
-     *
-     * yapılabilir.
+     * 0   = normal
+     * 180 = ters
      */
 
     private static final float MODEL_FORWARD_ROTATION = 0.0F;
@@ -103,7 +95,7 @@ public class PlayerModelHider {
 
     /*
      * ============================================================
-     * VANILLA MODEL GÖRÜNÜRLÜKLERİ
+     * VANILLA MODEL GÖRÜNÜRLÜK DURUMLARI
      * ============================================================
      */
 
@@ -131,6 +123,91 @@ public class PlayerModelHider {
 
         boolean rightPants;
         boolean leftPants;
+    }
+
+
+    /*
+     * ============================================================
+     * COMMAND API
+     * ============================================================
+     *
+     * LifeModModelCommand.java tarafından kullanılır.
+     */
+
+
+    public static void setMaleX(double value) {
+        maleX = value;
+    }
+
+
+    public static void setMaleY(double value) {
+        maleY = value;
+    }
+
+
+    public static void setMaleZ(double value) {
+        maleZ = value;
+    }
+
+
+    public static void setFemaleX(double value) {
+        femaleX = value;
+    }
+
+
+    public static void setFemaleY(double value) {
+        femaleY = value;
+    }
+
+
+    public static void setFemaleZ(double value) {
+        femaleZ = value;
+    }
+
+
+    public static double getMaleX() {
+        return maleX;
+    }
+
+
+    public static double getMaleY() {
+        return maleY;
+    }
+
+
+    public static double getMaleZ() {
+        return maleZ;
+    }
+
+
+    public static double getFemaleX() {
+        return femaleX;
+    }
+
+
+    public static double getFemaleY() {
+        return femaleY;
+    }
+
+
+    public static double getFemaleZ() {
+        return femaleZ;
+    }
+
+
+    public static void resetMalePosition() {
+
+        maleX = DEFAULT_MALE_X;
+        maleY = DEFAULT_MALE_Y;
+        maleZ = DEFAULT_MALE_Z;
+    }
+
+
+    public static void resetFemalePosition() {
+
+        femaleX = DEFAULT_FEMALE_X;
+        femaleY = DEFAULT_FEMALE_Y;
+        femaleZ = DEFAULT_FEMALE_Z;
     }
 
 
@@ -170,18 +247,21 @@ public class PlayerModelHider {
             return;
         }
 
+
         int gender = (int) variables.gender;
+
 
         if (gender == 0) {
             return;
         }
+
 
         boolean male = gender == 1;
 
 
         /*
          * ========================================================
-         * VANILLA PLAYER RENDERER
+         * PLAYER RENDERER
          * ========================================================
          */
 
@@ -197,31 +277,50 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * MEVCUT VANILLA MODEL DURUMUNU SAKLA
+         * VANILLA MODEL DURUMUNU SAKLA
          * ========================================================
          */
 
         ModelVisibilityState oldState =
                 new ModelVisibilityState();
 
-        oldState.head = model.head.visible;
-        oldState.hat = model.hat.visible;
 
-        oldState.body = model.body.visible;
+        oldState.head =
+                model.head.visible;
 
-        oldState.rightArm = model.rightArm.visible;
-        oldState.leftArm = model.leftArm.visible;
+        oldState.hat =
+                model.hat.visible;
 
-        oldState.rightLeg = model.rightLeg.visible;
-        oldState.leftLeg = model.leftLeg.visible;
+        oldState.body =
+                model.body.visible;
 
-        oldState.jacket = model.jacket.visible;
+        oldState.rightArm =
+                model.rightArm.visible;
 
-        oldState.rightSleeve = model.rightSleeve.visible;
-        oldState.leftSleeve = model.leftSleeve.visible;
+        oldState.leftArm =
+                model.leftArm.visible;
 
-        oldState.rightPants = model.rightPants.visible;
-        oldState.leftPants = model.leftPants.visible;
+        oldState.rightLeg =
+                model.rightLeg.visible;
+
+        oldState.leftLeg =
+                model.leftLeg.visible;
+
+        oldState.jacket =
+                model.jacket.visible;
+
+        oldState.rightSleeve =
+                model.rightSleeve.visible;
+
+        oldState.leftSleeve =
+                model.leftSleeve.visible;
+
+        oldState.rightPants =
+                model.rightPants.visible;
+
+        oldState.leftPants =
+                model.leftPants.visible;
+
 
         VISIBILITY_STATES.put(uuid, oldState);
 
@@ -233,23 +332,12 @@ public class PlayerModelHider {
          *
          * KAFA GÖRÜNÜR.
          *
-         * Kullanıcının istediği:
-         *
-         *     KAFA -> GÖRÜNSÜN
-         *     GÖVDE -> GİZLİ
-         *     KOLLAR -> GİZLİ
-         *     BACAKLAR -> GİZLİ
+         * Gövde/kollar/bacaklar gizlenir.
          */
 
         model.head.visible = true;
         model.hat.visible = true;
 
-
-        /*
-         * ========================================================
-         * VANILLA GÖVDE
-         * ========================================================
-         */
 
         model.body.visible = false;
 
@@ -280,18 +368,22 @@ public class PlayerModelHider {
                         (id, old) -> {
 
                             if (old == null) {
+
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
                                 );
                             }
 
+
                             if (old.isMale() != male) {
+
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
                                 );
                             }
+
 
                             return old;
                         }
@@ -300,7 +392,7 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * ANİMASYON DURUMUNU GÜNCELLE
+         * ANIMATION UPDATE
          * ========================================================
          */
 
@@ -326,60 +418,75 @@ public class PlayerModelHider {
          * ========================================================
          * MODEL POZİSYONU
          * ========================================================
+         *
+         * ÖNEMLİ:
+         *
+         * Burada artık sabit değer kullanmıyoruz.
+         *
+         * LifeModModelCommand ile değiştirdiğin değerler
+         * doğrudan burada kullanılıyor.
          */
 
         if (male) {
 
             poseStack.translate(
-                    MALE_X,
-                    MALE_Y,
-                    MALE_Z
+                    maleX,
+                    maleY,
+                    maleZ
             );
 
         } else {
 
             poseStack.translate(
-                    FEMALE_X,
-                    FEMALE_Y,
-                    FEMALE_Z
+                    femaleX,
+                    femaleY,
+                    femaleZ
             );
         }
 
 
         /*
          * ========================================================
-         * OYUNCUNUN BAKTIĞI YÖNE GÖRE DÖNÜŞ
+         * BAKIŞ YÖNÜ
          * ========================================================
          *
-         * RenderPlayer zaten body yaw'ı uyguladığı için burada
-         * yalnızca HEAD YAW - BODY YAW farkını uyguluyoruz.
+         * Minecraft'ın body rotation'ı zaten oyuncuyu döndürür.
+         *
+         * Burada yalnızca kafanın gövdeye göre dönüşünü ekliyoruz.
          */
 
-        float bodyYaw = Mth.rotLerp(
-                partialTick,
-                clientPlayer.yBodyRotO,
-                clientPlayer.yBodyRot
-        );
+        float bodyYaw =
+                Mth.rotLerp(
+                        partialTick,
+                        clientPlayer.yBodyRotO,
+                        clientPlayer.yBodyRot
+                );
 
-        float headYaw = Mth.rotLerp(
-                partialTick,
-                clientPlayer.yHeadRotO,
-                clientPlayer.yHeadRot
-        );
+
+        float headYaw =
+                Mth.rotLerp(
+                        partialTick,
+                        clientPlayer.yHeadRotO,
+                        clientPlayer.yHeadRot
+                );
+
 
         float relativeHeadYaw =
-                Mth.wrapDegrees(headYaw - bodyYaw);
+                Mth.wrapDegrees(
+                        headYaw - bodyYaw
+                );
 
 
         /*
          * ========================================================
-         * MODEL BAKIŞ DÖNÜŞÜ
+         * MODEL YAW
          * ========================================================
          */
 
         poseStack.mulPose(
                 Axis.YP.rotationDegrees(
-                        relativeHeadYaw + MODEL_FORWARD_ROTATION
+                        relativeHeadYaw
+                                + MODEL_FORWARD_ROTATION
                 )
         );
 
@@ -416,7 +523,7 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * POSE STACK GERİ AL
+         * POSE STACK RESTORE
          * ========================================================
          */
 
@@ -436,15 +543,19 @@ public class PlayerModelHider {
         Player player =
                 event.getEntity();
 
+
         if (!(player instanceof AbstractClientPlayer clientPlayer)) {
             return;
         }
 
+
         UUID uuid =
                 clientPlayer.getUUID();
 
+
         ModelVisibilityState oldState =
                 VISIBILITY_STATES.remove(uuid);
+
 
         if (oldState == null) {
             return;
@@ -453,16 +564,23 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * VANILLA MODELİ GERİ YÜKLE
+         * VANILLA PLAYER RENDERER
          * ========================================================
          */
 
         PlayerRenderer renderer =
                 (PlayerRenderer) event.getRenderer();
 
+
         PlayerModel<AbstractClientPlayer> model =
                 renderer.getModel();
 
+
+        /*
+         * ========================================================
+         * VANILLA MODEL DURUMUNU GERİ YÜKLE
+         * ========================================================
+         */
 
         model.head.visible =
                 oldState.head;
@@ -501,3 +619,4 @@ public class PlayerModelHider {
                 oldState.leftPants;
     }
 }
+```
