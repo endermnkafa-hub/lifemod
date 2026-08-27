@@ -1,15 +1,16 @@
 package net.mcreator.lifemod.client;
 
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.api.distmarker.Dist;
-
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.player.AbstractClientPlayer;
-
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import net.mcreator.lifemod.network.LifeModModVariables;
 
@@ -30,7 +31,9 @@ public class PlayerModelHider {
             new PlayerCustomRenderer(false);
 
     @SubscribeEvent
-    public static void onRenderPlayerPre(RenderPlayerEvent.Pre event) {
+    public static void onRenderPlayerPre(
+            RenderPlayerEvent.Pre event
+    ) {
 
         Player player = event.getEntity();
 
@@ -48,54 +51,36 @@ public class PlayerModelHider {
             return;
         }
 
-        double gender = variables.gender;
-
         /*
-         * gender 0 = vanilla oyuncu modeli
+         * Gender sistemi:
+         *
+         * 0 = vanilla
+         * 1 = erkek
+         * 2 = kadın
          */
+        int gender = (int) variables.gender;
+
         if (gender == 0) {
             return;
         }
 
-        /*
-         * Vanilla oyuncu modelini gizle.
-         *
-         * Kafa ve şapka BURADA gizlenmiyor.
-         * Custom model kendi kafasını çiziyorsa zaten
-         * vanilla modelin tamamını gizlememiz gerekiyor.
-         */
-        PlayerModel<AbstractClientPlayer> model =
-                event.getRenderer().getModel();
-
-        model.body.visible = false;
-
-        model.rightArm.visible = false;
-        model.leftArm.visible = false;
-
-        model.rightLeg.visible = false;
-        model.leftLeg.visible = false;
-
-        model.jacket.visible = false;
-
-        model.rightSleeve.visible = false;
-        model.leftSleeve.visible = false;
-
-        model.rightPants.visible = false;
-        model.leftPants.visible = false;
+        boolean male = gender == 1;
 
         /*
-         * Kafa da custom model tarafından çizileceği için
-         * vanilla kafayı gizle.
+         * Vanilla PlayerRenderer'ın tamamını iptal ediyoruz.
          *
-         * Önceki kodda kafa görünmüyordu çünkü custom modelin
-         * kendisi doğru pozisyona oturmamıştı.
+         * Böylece:
+         *
+         * - vanilla gövde
+         * - vanilla kafa
+         * - vanilla kollar
+         * - vanilla bacaklar
+         *
+         * custom modelin altında görünmüyor.
          */
-        model.head.visible = false;
-        model.hat.visible = false;
+        event.setCanceled(true);
 
         UUID uuid = clientPlayer.getUUID();
-
-        boolean isMale = gender == 1;
 
         PlayerModelAnimatable animatable =
                 ANIMATABLES.compute(
@@ -103,16 +88,22 @@ public class PlayerModelHider {
                         (id, old) -> {
 
                             if (old == null) {
+
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
-                                        isMale
+                                        male
                                 );
                             }
 
-                            if (old.isMale() != isMale) {
+                            /*
+                             * Gender değiştiyse eski animatable'ı
+                             * kullanma.
+                             */
+                            if (old.isMale() != male) {
+
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
-                                        isMale
+                                        male
                                 );
                             }
 
@@ -120,37 +111,77 @@ public class PlayerModelHider {
                         }
                 );
 
-        animatable.updateMovement(event.getPartialTick());
+        animatable.updateMovement(
+                event.getPartialTick()
+        );
 
-        PoseStack poseStack = event.getPoseStack();
+        PoseStack poseStack =
+                event.getPoseStack();
 
         poseStack.pushPose();
 
         /*
-         * RenderPlayerEvent.Pre zaten oyuncunun dünya konumunda
-         * ve oyuncuya göre doğru dönüşte çalışır.
+         * =====================================================
+         * MINECRAFT PLAYER ROTATION
+         * =====================================================
          *
-         * Bu yüzden önceki:
+         * Oyuncunun gövde yönünü kullanıyoruz.
          *
-         * 180 - player.getYRot()
+         * yBodyRotO = önceki tick
+         * yBodyRot  = mevcut tick
          *
-         * dönüşünü kullanmıyoruz.
+         * partialTick ile yumuşak interpolasyon yapıyoruz.
          */
+        float bodyYaw = Mth.rotLerp(
+                event.getPartialTick(),
+                clientPlayer.yBodyRotO,
+                clientPlayer.yBodyRot
+        );
 
         /*
-         * GeckoLib modeli Minecraft oyuncu modelinin merkezine
-         * göre çizilir.
+         * Minecraft player modelinin forward yönü ile
+         * GeckoLib modelinin forward yönünü eşleştiriyoruz.
+         */
+        poseStack.mulPose(
+                Axis.YP.rotationDegrees(
+                        180.0F - bodyYaw
+                )
+        );
+
+        /*
+         * Minecraft HumanoidModel dönüşümü.
          *
-         * Geo modelin pivotu oyuncunun ayak merkezindeyse
-         * Y = 0 doğru konumdur.
+         * Bu özellikle modelin:
+         *
+         * - yukarıda kalmasını
+         * - aşağıda kalmasını
+         * - ters eksende çizilmesini
+         *
+         * önlemek için önemli.
+         */
+        poseStack.scale(
+                -1.0F,
+                -1.0F,
+                1.0F
+        );
+
+        /*
+         * Minecraft player model origin'i
+         * ayaklardan 1.501 blok yukarıdadır.
+         *
+         * GeckoLib modelimizi aynı koordinat sistemine
+         * getiriyoruz.
          */
         poseStack.translate(
                 0.0D,
-                0.0D,
+                -1.501D,
                 0.0D
         );
 
-        if (isMale) {
+        /*
+         * Modeli çiz.
+         */
+        if (male) {
 
             MALE_RENDERER.renderPlayerModel(
                     animatable,
@@ -174,28 +205,5 @@ public class PlayerModelHider {
         }
 
         poseStack.popPose();
-
-        /*
-         * Vanilla model görünürlüğünü sonraki frame için
-         * tekrar aç.
-         */
-        model.body.visible = true;
-
-        model.rightArm.visible = true;
-        model.leftArm.visible = true;
-
-        model.rightLeg.visible = true;
-        model.leftLeg.visible = true;
-
-        model.jacket.visible = true;
-
-        model.rightSleeve.visible = true;
-        model.leftSleeve.visible = true;
-
-        model.rightPants.visible = true;
-        model.leftPants.visible = true;
-
-        model.head.visible = true;
-        model.hat.visible = true;
     }
 }
