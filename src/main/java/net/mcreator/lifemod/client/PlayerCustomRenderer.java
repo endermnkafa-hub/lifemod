@@ -1,50 +1,50 @@
 package net.mcreator.lifemod.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.renderer.GeoObjectRenderer;
 
 public class PlayerCustomRenderer extends GeoObjectRenderer<PlayerModelAnimatable> {
 
-    private final boolean isMale;
-
     public PlayerCustomRenderer(boolean isMale) {
         super(new PlayerCustomModel(isMale));
-        this.isMale = isMale;
     }
 
-    @Override
-    public void render(
+    public void renderModel(
             PlayerModelAnimatable animatable,
-            float partialTick,
             PoseStack poseStack,
             MultiBufferSource bufferSource,
             int packedLight,
-            int packedOverlay
+            int packedOverlay,
+            float partialTick
     ) {
-
         animatable.updateMovement(partialTick);
 
-        poseStack.pushPose();
-
-        /*
-         * Minecraft oyuncu modeli yaklaşık 1.8 blok yüksekliğindedir.
-         * Geo modelinin pivotuna göre küçük bir dikey düzeltme.
-         */
-        poseStack.translate(0.0D, 0.0D, 0.0D);
-
         super.render(
-                animatable,
-                partialTick,
                 poseStack,
+                animatable,
                 bufferSource,
+                RenderTypeFor(animatable),
                 packedLight,
                 packedOverlay
         );
+    }
 
-        poseStack.popPose();
+    private net.minecraft.client.renderer.RenderType RenderTypeFor(
+            PlayerModelAnimatable animatable
+    ) {
+        ResourceLocation texture =
+                animatable.isMale()
+                        ? new ResourceLocation(
+                                "life_mod",
+                                "textures/entity/custom_male.png"
+                        )
+                        : new ResourceLocation(
+                                "life_mod",
+                                "textures/entity/custom_female.png"
+                        );
+
+        return net.minecraft.client.renderer.RenderType.entityTranslucent(texture);
     }
 }
