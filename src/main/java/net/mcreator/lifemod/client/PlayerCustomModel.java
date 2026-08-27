@@ -19,12 +19,10 @@ public class PlayerCustomModel
     ) {
 
         if (male) {
-
             return new ResourceLocation(
                     "life_mod",
                     "geo/custom_male.geo.json"
             );
-
         }
 
         return new ResourceLocation(
@@ -39,12 +37,10 @@ public class PlayerCustomModel
     ) {
 
         if (male) {
-
             return new ResourceLocation(
                     "life_mod",
                     "textures/entity/custom_male.png"
             );
-
         }
 
         return new ResourceLocation(
@@ -59,12 +55,10 @@ public class PlayerCustomModel
     ) {
 
         if (male) {
-
             return new ResourceLocation(
                     "life_mod",
                     "animations/male.animation.json"
             );
-
         }
 
         return new ResourceLocation(
