@@ -99,6 +99,45 @@
           "src/main/resources/assets/life_mod/models/item/reselectgender.json"
         ]
       }
+    },
+    {
+      "name": "ReselectgenderRightclicked",
+      "type": "procedure",
+      "sortid": 4,
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "reselectgender_rightclicked",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/procedures/ReselectgenderRightclickedProcedure.java"
+        ],
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "itemstack",
+            "type": "itemstack"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ]
+      }
     }
   ],
   "variable_elements": [

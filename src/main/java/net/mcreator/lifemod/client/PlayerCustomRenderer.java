@@ -14,12 +14,14 @@ public class PlayerCustomRenderer
 
     private final boolean male;
 
+
     public PlayerCustomRenderer(boolean male) {
 
         super(new PlayerCustomModel(male));
 
         this.male = male;
     }
+
 
     public void renderPlayerModel(
             PlayerModelAnimatable animatable,
@@ -30,9 +32,12 @@ public class PlayerCustomRenderer
             float partialTick
     ) {
 
-        animatable.updateMovement(partialTick);
-
         ResourceLocation texture;
+
+
+        // =====================================================
+        // TEXTURE
+        // =====================================================
 
         if (male) {
 
@@ -49,11 +54,26 @@ public class PlayerCustomRenderer
             );
         }
 
+
+        // =====================================================
+        // RENDER TYPE
+        // =====================================================
+
         RenderType renderType =
-                RenderType.entityTranslucent(texture);
+                RenderType.entityTranslucent(
+                        texture
+                );
+
 
         VertexConsumer vertexConsumer =
-                bufferSource.getBuffer(renderType);
+                bufferSource.getBuffer(
+                        renderType
+                );
+
+
+        // =====================================================
+        // GECKOLIB RENDER
+        // =====================================================
 
         super.render(
                 poseStack,
