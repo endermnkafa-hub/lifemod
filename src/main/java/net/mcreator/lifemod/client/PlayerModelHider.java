@@ -152,26 +152,26 @@ public class PlayerModelHider {
          */
         if (isMale) {
 
-            MALE_RENDERER.render(
-                    animatable,
-                    event.getPartialTick(),
-                    poseStack,
-                    event.getMultiBufferSource(),
-                    event.getPackedLight(),
-                    0
-            );
+    MALE_RENDERER.renderPlayerModel(
+            animatable,
+            poseStack,
+            event.getMultiBufferSource(),
+            event.getPackedLight(),
+            0,
+            event.getPartialTick()
+    );
 
-        } else {
+} else {
 
-            FEMALE_RENDERER.render(
-                    animatable,
-                    event.getPartialTick(),
-                    poseStack,
-                    event.getMultiBufferSource(),
-                    event.getPackedLight(),
-                    0
-            );
-        }
+    FEMALE_RENDERER.renderPlayerModel(
+            animatable,
+            poseStack,
+            event.getMultiBufferSource(),
+            event.getPackedLight(),
+            0,
+            event.getPartialTick()
+    );
+}
 
         poseStack.popPose();
     }
