@@ -38,9 +38,6 @@ public class PlayerModelAnimatable implements GeoAnimatable {
         return male;
     }
 
-    /**
-     * Minecraft'ın gerçek hareket bilgisini günceller.
-     */
     public void updateMovement(float partialTick) {
 
         double vx = player.getDeltaMovement().x;
@@ -49,17 +46,12 @@ public class PlayerModelAnimatable implements GeoAnimatable {
         double horizontalSpeed =
                 vx * vx + vz * vz;
 
-        /*
-         * Oyuncunun gerçekten hareket edip etmediğini
-         * velocity üzerinden kontrol ediyoruz.
-         */
         this.moving =
                 horizontalSpeed > 0.0001D
                         && !player.isPassenger();
 
         this.sprinting =
-                moving
-                        && player.isSprinting();
+                moving && player.isSprinting();
     }
 
     public boolean isMoving() {
@@ -89,9 +81,6 @@ public class PlayerModelAnimatable implements GeoAnimatable {
             AnimationState<PlayerModelAnimatable> state
     ) {
 
-        /*
-         * ERKEK MODEL
-         */
         if (male) {
 
             if (sprinting) {
@@ -123,16 +112,8 @@ public class PlayerModelAnimatable implements GeoAnimatable {
         }
 
         /*
-         * KADIN MODEL
-         *
-         * female.animation.json içinde güvenli ve mevcut
-         * olarak doğruladığımız karakter animasyonu:
-         *
-         * animation.jenny.fhappy
-         *
-         * Dosyada Minecraft tipi female.walk/female.sprint
-         * isimleri bulunmadığından olmayan animasyonları
-         * çağırmıyoruz.
+         * Kadın modelinin animation.json dosyasında bulunan
+         * mevcut animasyon kullanılıyor.
          */
         state.getController().setAnimation(
                 RawAnimation.begin()
