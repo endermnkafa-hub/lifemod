@@ -142,11 +142,15 @@ public class PlayerModelHider {
          * Minecraft player modelinin forward yönü ile
          * GeckoLib modelinin forward yönünü eşleştiriyoruz.
          */
-        poseStack.mulPose(
-                poseStack.mulPose(
+        float bodyYaw = Mth.rotLerp(
+        event.getPartialTick(),
+        clientPlayer.yBodyRotO,
+        clientPlayer.yBodyRot
+);
+
+poseStack.mulPose(
         Axis.YP.rotationDegrees(bodyYaw)
 );
-        );
 
         /*
          * Minecraft HumanoidModel dönüşümü.
