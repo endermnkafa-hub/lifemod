@@ -144,7 +144,7 @@ public class PlayerModelHider {
          */
         poseStack.mulPose(
                 Axis.YP.rotationDegrees(
-                        0.0F - bodyYaw
+                        
                 )
         );
 
