@@ -86,6 +86,58 @@
           }
         ]
       }
+    },
+    {
+      "name": "Reselectgender",
+      "type": "item",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "reselectgender",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/item/ReselectgenderItem.java",
+          "src/main/resources/assets/life_mod/models/item/reselectgender.json"
+        ]
+      }
+    },
+    {
+      "name": "ReselectgenderRightclicked",
+      "type": "procedure",
+      "sortid": 4,
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "reselectgender_rightclicked",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/lifemod/procedures/ReselectgenderRightclickedProcedure.java"
+        ],
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "itemstack",
+            "type": "itemstack"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ]
+      }
     }
   ],
   "variable_elements": [
@@ -101,7 +153,8 @@
     "en_us": {
       "gui.life_mod.gender_gui.button_female": "Female",
       "gui.life_mod.gender_gui.label_what_is_yor_gender": "What is yor gender?",
-      "gui.life_mod.gender_gui.button_male": "Male"
+      "gui.life_mod.gender_gui.button_male": "Male",
+      "item.life_mod.reselectgender": "Reselect gender"
     }
   },
   "foldersRoot": {

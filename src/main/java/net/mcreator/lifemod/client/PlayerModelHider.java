@@ -21,14 +21,92 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class PlayerModelHider {
 
-    private static final Map<UUID, PlayerModelAnimatable> ANIMATABLES =
-            new ConcurrentHashMap<>();
+    // =========================================================
+    // MODEL AYARLARI
+    // =========================================================
+
+    /*
+     * SAĞ / SOL
+     *
+     * Pozitif  = sağ
+     * Negatif  = sol
+     */
+    private static final double MODEL_X = 0.0D;
+
+
+    /*
+     * YÜKSEKLİK
+     *
+     * Pozitif  = yukarı
+     * Negatif  = aşağı
+     */
+    private static final double MODEL_Y = 0.0D;
+
+
+    /*
+     * ÖN / ARKA
+     *
+     * Pozitif  = öne
+     * Negatif  = arkaya
+     */
+    private static final double MODEL_Z = 0.0D;
+
+
+    /*
+     * MODELİN EKSTRA YATAY DÖNÜŞÜ
+     *
+     * 0    = normal
+     * 90   = 90 derece
+     * 180  = tamamen ters
+     * 270  = 270 derece
+     *
+     * Eğer model karakterin baktığı yönün tam tersine bakıyorsa
+     * bunu 180.0F yap.
+     */
+    private static final float MODEL_YAW_OFFSET = 0.0F;
+
+
+    /*
+     * MODELİN DİKEY DÖNÜŞÜ
+     *
+     * Normalde 0 bırak.
+     */
+    private static final float MODEL_PITCH_OFFSET = 0.0F;
+
+
+    /*
+     * MODEL BOYUTU
+     *
+     * 1.0 = normal
+     * 1.1 = %10 büyük
+     * 0.9 = %10 küçük
+     * 2.0 = 2 kat büyük
+     */
+    private static final float MODEL_SCALE = 1.0F;
+
+
+    // =========================================================
+    // RENDERERLAR
+    // =========================================================
 
     private static final PlayerCustomRenderer MALE_RENDERER =
             new PlayerCustomRenderer(true);
 
     private static final PlayerCustomRenderer FEMALE_RENDERER =
             new PlayerCustomRenderer(false);
+
+
+    // =========================================================
+    // ANIMATABLE CACHE
+    // =========================================================
+
+    private static final Map<UUID, PlayerModelAnimatable> ANIMATABLES =
+            new ConcurrentHashMap<>();
+
+
+    // =========================================================
+    // PLAYER RENDER
+    // =========================================================
 
     @SubscribeEvent
     public static void onRenderPlayerPre(
@@ -37,9 +115,17 @@ public class PlayerModelHider {
 
         Player player = event.getEntity();
 
+        /*
+         * Sadece gerçek client player renderlarını işliyoruz.
+         */
         if (!(player instanceof AbstractClientPlayer clientPlayer)) {
             return;
         }
+
+
+        // =====================================================
+        // GENDER
+        // =====================================================
 
         LifeModModVariables.PlayerVariables variables =
                 clientPlayer.getCapability(
@@ -51,8 +137,9 @@ public class PlayerModelHider {
             return;
         }
 
+
         /*
-         * Gender sistemi:
+         * Gender:
          *
          * 0 = vanilla
          * 1 = erkek
@@ -60,25 +147,28 @@ public class PlayerModelHider {
          */
         int gender = (int) variables.gender;
 
+
+        /*
+         * Gender seçilmemişse vanilla modeli kullan.
+         */
         if (gender == 0) {
             return;
         }
 
+
         boolean male = gender == 1;
 
-        /*
-         * Vanilla PlayerRenderer'ın tamamını iptal ediyoruz.
-         *
-         * Böylece:
-         *
-         * - vanilla gövde
-         * - vanilla kafa
-         * - vanilla kollar
-         * - vanilla bacaklar
-         *
-         * custom modelin altında görünmüyor.
-         */
+
+        // =====================================================
+        // VANILLA PLAYER MODELİNİ TAMAMEN KAPAT
+        // =====================================================
+
         event.setCanceled(true);
+
+
+        // =====================================================
+        // ANIMATABLE
+        // =====================================================
 
         UUID uuid = clientPlayer.getUUID();
 
@@ -87,6 +177,9 @@ public class PlayerModelHider {
                         uuid,
                         (id, old) -> {
 
+                            /*
+                             * İlk defa render ediliyorsa oluştur.
+                             */
                             if (old == null) {
 
                                 return new PlayerModelAnimatable(
@@ -95,9 +188,9 @@ public class PlayerModelHider {
                                 );
                             }
 
+
                             /*
-                             * Gender değiştiyse eski animatable'ı
-                             * kullanma.
+                             * Gender değişmişse yeni model oluştur.
                              */
                             if (old.isMale() != male) {
 
@@ -107,84 +200,115 @@ public class PlayerModelHider {
                                 );
                             }
 
+
                             return old;
                         }
                 );
 
+
+        // =====================================================
+        // ANİMASYON HAREKET BİLGİSİ
+        // =====================================================
+
         animatable.updateMovement(
                 event.getPartialTick()
         );
+
+
+        // =====================================================
+        // POSE STACK
+        // =====================================================
 
         PoseStack poseStack =
                 event.getPoseStack();
 
         poseStack.pushPose();
 
-        /*
-         * =====================================================
-         * MINECRAFT PLAYER ROTATION
-         * =====================================================
-         *
-         * Oyuncunun gövde yönünü kullanıyoruz.
-         *
-         * yBodyRotO = önceki tick
-         * yBodyRot  = mevcut tick
-         *
-         * partialTick ile yumuşak interpolasyon yapıyoruz.
-         */
+
+        // =====================================================
+        // OYUNCUNUN GERÇEK YÖNÜ
+        // =====================================================
+
         float bodyYaw = Mth.rotLerp(
                 event.getPartialTick(),
                 clientPlayer.yBodyRotO,
                 clientPlayer.yBodyRot
         );
 
-        /*
-         * Minecraft player modelinin forward yönü ile
-         * GeckoLib modelinin forward yönünü eşleştiriyoruz.
-         */
-        float bodyYaw = Mth.rotLerp(
-        event.getPartialTick(),
-        clientPlayer.yBodyRotO,
-        clientPlayer.yBodyRot
-);
-
-poseStack.mulPose(
-        Axis.YP.rotationDegrees(bodyYaw)
-);
 
         /*
-         * Minecraft HumanoidModel dönüşümü.
-         *
-         * Bu özellikle modelin:
-         *
-         * - yukarıda kalmasını
-         * - aşağıda kalmasını
-         * - ters eksende çizilmesini
-         *
-         * önlemek için önemli.
+         * Minecraft oyuncusunun baktığı yön.
          */
-        poseStack.scale(
-                1.0F,
-                1.0F,
-                1.0F
+        poseStack.mulPose(
+                Axis.YP.rotationDegrees(
+                        bodyYaw
+                )
         );
 
+
+        // =====================================================
+        // MODELİN KENDİ DÖNÜŞÜ
+        // =====================================================
+
         /*
-         * Minecraft player model origin'i
-         * ayaklardan 1.501 blok yukarıdadır.
+         * Eğer model ters duruyorsa:
          *
-         * GeckoLib modelimizi aynı koordinat sistemine
-         * getiriyoruz.
+         * MODEL_YAW_OFFSET = 180.0F
+         *
+         * yapabilirsin.
+         */
+        poseStack.mulPose(
+                Axis.YP.rotationDegrees(
+                        MODEL_YAW_OFFSET
+                )
+        );
+
+
+        // =====================================================
+        // MODEL POZİSYONU
+        // =====================================================
+
+        /*
+         * X = sağ / sol
+         * Y = yukarı / aşağı
+         * Z = ön / arka
          */
         poseStack.translate(
-                0.0D,
-                -1.501D,
-                0.0D
+                MODEL_X,
+                MODEL_Y,
+                MODEL_Z
         );
 
-        /*
-         * Modeli çiz.
-         */
+
+        // =====================================================
+        // MODEL DİKEY DÖNÜŞÜ
+        // =====================================================
+
+        if (MODEL_PITCH_OFFSET != 0.0F) {
+
+            poseStack.mulPose(
+                    Axis.XP.rotationDegrees(
+                            MODEL_PITCH_OFFSET
+                    )
+            );
+        }
+
+
+        // =====================================================
+        // MODEL BOYUTU
+        // =====================================================
+
+        poseStack.scale(
+                MODEL_SCALE,
+                MODEL_SCALE,
+                MODEL_SCALE
+        );
+
+
+        // =====================================================
+        // MODELİ ÇİZ
+        // =====================================================
+
         if (male) {
 
             MALE_RENDERER.renderPlayerModel(
@@ -207,6 +331,11 @@ poseStack.mulPose(
                     event.getPartialTick()
             );
         }
+
+
+        // =====================================================
+        // POSE STACK GERİ AL
+        // =====================================================
 
         poseStack.popPose();
     }
