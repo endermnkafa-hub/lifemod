@@ -14,14 +14,10 @@ public class PlayerCustomRenderer
 
     private final boolean male;
 
-
     public PlayerCustomRenderer(boolean male) {
-
         super(new PlayerCustomModel(male));
-
         this.male = male;
     }
-
 
     public void renderPlayerModel(
             PlayerModelAnimatable animatable,
@@ -34,46 +30,23 @@ public class PlayerCustomRenderer
 
         ResourceLocation texture;
 
-
-        // =====================================================
-        // TEXTURE
-        // =====================================================
-
         if (male) {
-
             texture = new ResourceLocation(
                     "life_mod",
                     "textures/entity/custom_male.png"
             );
-
         } else {
-
             texture = new ResourceLocation(
                     "life_mod",
                     "textures/entity/custom_female.png"
             );
         }
 
-
-        // =====================================================
-        // RENDER TYPE
-        // =====================================================
-
         RenderType renderType =
-                RenderType.entityTranslucent(
-                        texture
-                );
-
+                RenderType.entityTranslucent(texture);
 
         VertexConsumer vertexConsumer =
-                bufferSource.getBuffer(
-                        renderType
-                );
-
-
-        // =====================================================
-        // GECKOLIB RENDER
-        // =====================================================
+                bufferSource.getBuffer(renderType);
 
         super.render(
                 poseStack,
