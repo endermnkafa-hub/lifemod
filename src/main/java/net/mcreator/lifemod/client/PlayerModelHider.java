@@ -168,7 +168,7 @@ public class PlayerModelHider {
                     poseStack,
                     event.getMultiBufferSource(),
                     event.getPackedLight(),
-                    event.getPackedOverlay(),
+                    0,
                     event.getPartialTick()
             );
         }
