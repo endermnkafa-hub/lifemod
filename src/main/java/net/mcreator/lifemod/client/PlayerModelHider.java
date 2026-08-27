@@ -143,9 +143,9 @@ public class PlayerModelHider {
          * GeckoLib modelinin forward yönünü eşleştiriyoruz.
          */
         poseStack.mulPose(
-                Axis.YP.rotationDegrees(
-                        
-                )
+                poseStack.mulPose(
+        Axis.YP.rotationDegrees(bodyYaw)
+);
         );
 
         /*
