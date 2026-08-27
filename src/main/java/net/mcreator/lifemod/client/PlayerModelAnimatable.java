@@ -53,8 +53,9 @@ public class PlayerModelAnimatable implements GeoAnimatable {
     }
 
     @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-
+    public void registerControllers(
+            AnimatableManager.ControllerRegistrar controllers
+    ) {
         controllers.add(
                 new AnimationController<>(
                         this,
@@ -65,23 +66,30 @@ public class PlayerModelAnimatable implements GeoAnimatable {
         );
     }
 
-    private PlayState movementPredicate(AnimationState<PlayerModelAnimatable> state) {
-
+    private PlayState movementPredicate(
+            AnimationState<PlayerModelAnimatable> state
+    ) {
         if (sprinting) {
-
             state.getController().setAnimation(
                     RawAnimation.begin()
-                            .thenLoop(isMale ? "male.sprint" : "female.sprint")
+                            .thenLoop(
+                                    isMale
+                                            ? "male.sprint"
+                                            : "female.sprint"
+                            )
             );
 
             return PlayState.CONTINUE;
         }
 
         if (moving) {
-
             state.getController().setAnimation(
                     RawAnimation.begin()
-                            .thenLoop(isMale ? "male.walk" : "female.walk")
+                            .thenLoop(
+                                    isMale
+                                            ? "male.walk"
+                                            : "female.walk"
+                            )
             );
 
             return PlayState.CONTINUE;
@@ -89,7 +97,11 @@ public class PlayerModelAnimatable implements GeoAnimatable {
 
         state.getController().setAnimation(
                 RawAnimation.begin()
-                        .thenLoop(isMale ? "male.idle" : "female.idle")
+                        .thenLoop(
+                                isMale
+                                        ? "male.idle"
+                                        : "female.idle"
+                        )
         );
 
         return PlayState.CONTINUE;
@@ -98,5 +110,10 @@ public class PlayerModelAnimatable implements GeoAnimatable {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    @Override
+    public double getTick(Object relatedObject) {
+        return player.tickCount;
     }
 }
