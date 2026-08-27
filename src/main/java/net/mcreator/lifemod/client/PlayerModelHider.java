@@ -1,3 +1,4 @@
+```java
 package net.mcreator.lifemod.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -21,17 +22,72 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class PlayerModelHider {
 
+    /*
+     * ============================================================
+     * MODEL POZİSYON AYARLARI
+     * ============================================================
+     *
+     * 1 Minecraft blok = 1.0
+     * 1 Blockbench pixel = 0.0625
+     *
+     * X:
+     *  + sağ
+     *  - sol
+     *
+     * Y:
+     *  + yukarı
+     *  - aşağı
+     *
+     * Z:
+     *  + öne
+     *  - arkaya
+     *
+     * ============================================================
+     */
+
+    // ERKEK MODEL
+    private static final double MALE_X = 0.0D;
+    private static final double MALE_Y = 0.0D;
+    private static final double MALE_Z = 0.0D;
+
+    // KADIN MODEL
+    private static final double FEMALE_X = 0.0D;
+    private static final double FEMALE_Y = 0.0D;
+    private static final double FEMALE_Z = 0.0D;
+
+
+    /*
+     * ============================================================
+     * RENDERERLAR
+     * ============================================================
+     */
+
     private static final PlayerCustomRenderer MALE_RENDERER =
             new PlayerCustomRenderer(true);
 
     private static final PlayerCustomRenderer FEMALE_RENDERER =
             new PlayerCustomRenderer(false);
 
+
+    /*
+     * ============================================================
+     * ANIMATABLE'LAR
+     * ============================================================
+     */
+
     private static final Map<UUID, PlayerModelAnimatable> ANIMATABLES =
             new ConcurrentHashMap<>();
 
+
+    /*
+     * ============================================================
+     * VANILLA MODEL GÖRÜNÜRLÜK DURUMU
+     * ============================================================
+     */
+
     private static final Map<UUID, ModelVisibilityState> VISIBILITY_STATES =
             new ConcurrentHashMap<>();
+
 
     private static class ModelVisibilityState {
 
@@ -55,6 +111,13 @@ public class PlayerModelHider {
         boolean leftPants;
     }
 
+
+    /*
+     * ============================================================
+     * PLAYER RENDER PRE
+     * ============================================================
+     */
+
     @SubscribeEvent
     public static void onRenderPlayerPre(RenderPlayerEvent.Pre event) {
 
@@ -63,6 +126,17 @@ public class PlayerModelHider {
         if (!(player instanceof AbstractClientPlayer clientPlayer)) {
             return;
         }
+
+
+        /*
+         * ========================================================
+         * GENDER
+         * ========================================================
+         *
+         * 0 = vanilla
+         * 1 = erkek
+         * 2 = kadın
+         */
 
         LifeModModVariables.PlayerVariables variables =
                 clientPlayer.getCapability(
@@ -74,13 +148,6 @@ public class PlayerModelHider {
             return;
         }
 
-        /*
-         * Gender:
-         *
-         * 0 = vanilla
-         * 1 = erkek
-         * 2 = kadın
-         */
         int gender = (int) variables.gender;
 
         if (gender == 0) {
@@ -89,58 +156,95 @@ public class PlayerModelHider {
 
         boolean male = gender == 1;
 
+
+        /*
+         * ========================================================
+         * VANILLA PLAYER MODEL
+         * ========================================================
+         */
+
         PlayerRenderer renderer =
                 (PlayerRenderer) event.getRenderer();
 
         PlayerModel<AbstractClientPlayer> model =
                 renderer.getModel();
 
-        UUID uuid = clientPlayer.getUUID();
+
+        UUID uuid =
+                clientPlayer.getUUID();
+
 
         /*
-         * Mevcut vanilla model görünürlüklerini sakla.
+         * ========================================================
+         * ESKİ GÖRÜNÜRLÜKLERİ SAKLA
+         * ========================================================
          */
+
         ModelVisibilityState oldState =
                 new ModelVisibilityState();
 
-        oldState.head = model.head.visible;
-        oldState.hat = model.hat.visible;
+        oldState.head =
+                model.head.visible;
 
-        oldState.body = model.body.visible;
+        oldState.hat =
+                model.hat.visible;
 
-        oldState.rightArm = model.rightArm.visible;
-        oldState.leftArm = model.leftArm.visible;
+        oldState.body =
+                model.body.visible;
 
-        oldState.rightLeg = model.rightLeg.visible;
-        oldState.leftLeg = model.leftLeg.visible;
+        oldState.rightArm =
+                model.rightArm.visible;
 
-        oldState.jacket = model.jacket.visible;
+        oldState.leftArm =
+                model.leftArm.visible;
 
-        oldState.rightSleeve = model.rightSleeve.visible;
-        oldState.leftSleeve = model.leftSleeve.visible;
+        oldState.rightLeg =
+                model.rightLeg.visible;
 
-        oldState.rightPants = model.rightPants.visible;
-        oldState.leftPants = model.leftPants.visible;
+        oldState.leftLeg =
+                model.leftLeg.visible;
 
-        VISIBILITY_STATES.put(uuid, oldState);
+        oldState.jacket =
+                model.jacket.visible;
+
+        oldState.rightSleeve =
+                model.rightSleeve.visible;
+
+        oldState.leftSleeve =
+                model.leftSleeve.visible;
+
+        oldState.rightPants =
+                model.rightPants.visible;
+
+        oldState.leftPants =
+                model.leftPants.visible;
+
+
+        VISIBILITY_STATES.put(
+                uuid,
+                oldState
+        );
+
 
         /*
-         * =====================================================
+         * ========================================================
          * KAFA
-         * =====================================================
+         * ========================================================
          *
-         * Vanilla kafa kullanılacak.
-         *
-         * Custom GeoModel'in kendi kafa parçaları varsa onların
-         * görünürlüğü model/geo tarafından kontrol edilir.
+         * Vanilla Minecraft kafası kullanılacak.
          */
+
         model.head.visible = true;
         model.hat.visible = true;
 
+
         /*
-         * =====================================================
-         * VANILLA GÖVDEYİ GİZLE
-         * =====================================================
+         * ========================================================
+         * VANILLA VÜCUT
+         * ========================================================
+         *
+         * Custom GeoModel vücudu çizeceği için vanilla vücut
+         * parçalarını gizliyoruz.
          */
 
         model.body.visible = false;
@@ -159,10 +263,11 @@ public class PlayerModelHider {
         model.rightPants.visible = false;
         model.leftPants.visible = false;
 
+
         /*
-         * =====================================================
+         * ========================================================
          * GECKOLIB ANIMATABLE
-         * =====================================================
+         * ========================================================
          */
 
         PlayerModelAnimatable animatable =
@@ -171,6 +276,7 @@ public class PlayerModelHider {
                         (id, old) -> {
 
                             if (old == null) {
+
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
@@ -178,6 +284,7 @@ public class PlayerModelHider {
                             }
 
                             if (old.isMale() != male) {
+
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
@@ -188,72 +295,49 @@ public class PlayerModelHider {
                         }
                 );
 
+
+        /*
+         * ========================================================
+         * ANİMASYON GÜNCELLE
+         * ========================================================
+         */
+
         float partialTick =
                 event.getPartialTick();
 
-        animatable.updateMovement(partialTick);
+        animatable.updateMovement(
+                partialTick
+        );
+
+
+        /*
+         * ========================================================
+         * POSE STACK
+         * ========================================================
+         */
 
         PoseStack poseStack =
                 event.getPoseStack();
 
         poseStack.pushPose();
 
+
         /*
-         * =====================================================
-         * MODEL ROOT HİZALAMA
-         * =====================================================
+         * ========================================================
+         * MODEL POZİSYONU
+         * ========================================================
          *
-         * Minecraft:
-         *
-         * 1 blok = 16 pixel
-         *
-         * ERKEK ROOT:
-         *
-         * Blockbench:
-         * X = -4
-         * Y =  0
-         * Z = +1.7
-         *
-         * Root'u Minecraft oyuncu merkezine getirmek için
-         * tersine çeviriyoruz:
-         *
-         * X = +4 px
-         * Y =  0 px
-         * Z = -1.7 px
-         *
-         * =====================================================
+         * Buradaki değerler modeli sağa/sola/yukarı/aşağı/
+         * öne/arkaya hareket ettirir.
          */
 
         if (male) {
 
-            poseStack.pushPose();
-
-if (male) {
-
-    // Erkek model: Blockbench'teki orijinal root konumu
-    MALE_RENDERER.renderPlayerModel(
-            animatable,
-            poseStack,
-            event.getMultiBufferSource(),
-            event.getPackedLight(),
-            0,
-            partialTick
-    );
-
-} else {
-
-    // Kadın model: Blockbench'teki orijinal root konumu
-    FEMALE_RENDERER.renderPlayerModel(
-            animatable,
-            poseStack,
-            event.getMultiBufferSource(),
-            event.getPackedLight(),
-            0,
-            partialTick
-    );
-}
-
-poseStack.popPose();
+            poseStack.translate(
+                    MALE_X,
+                    MALE_Y,
+                    MALE_Z
+            );
 
             MALE_RENDERER.renderPlayerModel(
                     animatable,
@@ -266,13 +350,11 @@ poseStack.popPose();
 
         } else {
 
-            /*
-             * Kadın modelinin root'u:
-             *
-             * [0, 0, 0]
-             *
-             * Bu yüzden ekstra translation yok.
-             */
+            poseStack.translate(
+                    FEMALE_X,
+                    FEMALE_Y,
+                    FEMALE_Z
+            );
 
             FEMALE_RENDERER.renderPlayerModel(
                     animatable,
@@ -284,20 +366,37 @@ poseStack.popPose();
             );
         }
 
+
+        /*
+         * ========================================================
+         * POSE STACK GERİ AL
+         * ========================================================
+         */
+
         poseStack.popPose();
     }
+
+
+    /*
+     * ============================================================
+     * PLAYER RENDER POST
+     * ============================================================
+     */
 
     @SubscribeEvent
     public static void onRenderPlayerPost(RenderPlayerEvent.Post event) {
 
-        Player player = event.getEntity();
+        Player player =
+                event.getEntity();
 
         if (!(player instanceof AbstractClientPlayer clientPlayer)) {
             return;
         }
 
+
         UUID uuid =
                 clientPlayer.getUUID();
+
 
         ModelVisibilityState oldState =
                 VISIBILITY_STATES.remove(uuid);
@@ -306,15 +405,19 @@ poseStack.popPose();
             return;
         }
 
+
+        /*
+         * ========================================================
+         * VANILLA MODELİ GERİ YÜKLE
+         * ========================================================
+         */
+
         PlayerRenderer renderer =
                 (PlayerRenderer) event.getRenderer();
 
         PlayerModel<AbstractClientPlayer> model =
                 renderer.getModel();
 
-        /*
-         * Vanilla model görünürlüklerini geri yükle.
-         */
 
         model.head.visible =
                 oldState.head;
@@ -353,3 +456,4 @@ poseStack.popPose();
                 oldState.leftPants;
     }
 }
+```
