@@ -23,36 +23,117 @@ public class PlayerModelHider {
 
     /*
      * ============================================================
-     * MODEL POZİSYON AYARLARI
+     * MODEL POZİSYONU
      * ============================================================
      *
-     * 1 Minecraft blok = 1.0
-     * 1 Blockbench pixel = 0.0625
+     * Bu değerler oyun içerisinde /lifemodmodel komutuyla
+     * değiştirilebilir.
+     *
+     * 1.0 = 1 Minecraft bloğu
      *
      * X:
-     *  + sağ
-     *  - sol
+     * + sağ
+     * - sol
      *
      * Y:
-     *  + yukarı
-     *  - aşağı
+     * + yukarı
+     * - aşağı
      *
      * Z:
-     *  + öne
-     *  - arkaya
+     * + öne
+     * - arkaya
      *
      * ============================================================
      */
 
-    // ERKEK MODEL
-    private static final double MALE_X = 0.0D;
-    private static final double MALE_Y = 0.0D;
-    private static final double MALE_Z = 0.0D;
+    private static double maleX = 0.0D;
+    private static double maleY = 0.0D;
+    private static double maleZ = 0.0D;
 
-    // KADIN MODEL
-    private static final double FEMALE_X = 0.0D;
-    private static final double FEMALE_Y = 0.0D;
-    private static final double FEMALE_Z = 0.0D;
+    private static double femaleX = 0.0D;
+    private static double femaleY = 0.0D;
+    private static double femaleZ = 0.0D;
+
+
+    /*
+     * ============================================================
+     * POZİSYON GETİRİCİLER
+     * ============================================================
+     */
+
+    public static double getMaleX() {
+        return maleX;
+    }
+
+    public static double getMaleY() {
+        return maleY;
+    }
+
+    public static double getMaleZ() {
+        return maleZ;
+    }
+
+    public static double getFemaleX() {
+        return femaleX;
+    }
+
+    public static double getFemaleY() {
+        return femaleY;
+    }
+
+    public static double getFemaleZ() {
+        return femaleZ;
+    }
+
+
+    /*
+     * ============================================================
+     * POZİSYON AYARLAYICILAR
+     * ============================================================
+     */
+
+    public static void setMaleX(double value) {
+        maleX = value;
+    }
+
+    public static void setMaleY(double value) {
+        maleY = value;
+    }
+
+    public static void setMaleZ(double value) {
+        maleZ = value;
+    }
+
+    public static void setFemaleX(double value) {
+        femaleX = value;
+    }
+
+    public static void setFemaleY(double value) {
+        femaleY = value;
+    }
+
+    public static void setFemaleZ(double value) {
+        femaleZ = value;
+    }
+
+
+    /*
+     * ============================================================
+     * SIFIRLAMA
+     * ============================================================
+     */
+
+    public static void resetMalePosition() {
+        maleX = 0.0D;
+        maleY = 0.0D;
+        maleZ = 0.0D;
+    }
+
+    public static void resetFemalePosition() {
+        femaleX = 0.0D;
+        femaleY = 0.0D;
+        femaleZ = 0.0D;
+    }
 
 
     /*
@@ -230,7 +311,7 @@ public class PlayerModelHider {
          * KAFA
          * ========================================================
          *
-         * Vanilla Minecraft kafası kullanılacak.
+         * Vanilla Minecraft kafası görünür kalıyor.
          */
 
         model.head.visible = true;
@@ -239,11 +320,8 @@ public class PlayerModelHider {
 
         /*
          * ========================================================
-         * VANILLA VÜCUT
+         * VANILLA VÜCUT PARÇALARINI GİZLE
          * ========================================================
-         *
-         * Custom GeoModel vücudu çizeceği için vanilla vücut
-         * parçalarını gizliyoruz.
          */
 
         model.body.visible = false;
@@ -325,17 +403,14 @@ public class PlayerModelHider {
          * ========================================================
          * MODEL POZİSYONU
          * ========================================================
-         *
-         * Buradaki değerler modeli sağa/sola/yukarı/aşağı/
-         * öne/arkaya hareket ettirir.
          */
 
         if (male) {
 
             poseStack.translate(
-                    MALE_X,
-                    MALE_Y,
-                    MALE_Z
+                    maleX,
+                    maleY,
+                    maleZ
             );
 
             MALE_RENDERER.renderPlayerModel(
@@ -350,9 +425,9 @@ public class PlayerModelHider {
         } else {
 
             poseStack.translate(
-                    FEMALE_X,
-                    FEMALE_Y,
-                    FEMALE_Z
+                    femaleX,
+                    femaleY,
+                    femaleZ
             );
 
             FEMALE_RENDERER.renderPlayerModel(
