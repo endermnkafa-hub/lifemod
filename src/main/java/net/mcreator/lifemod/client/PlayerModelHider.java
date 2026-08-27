@@ -160,8 +160,8 @@ public class PlayerModelHider {
          * önlemek için önemli.
          */
         poseStack.scale(
-                -1.0F,
-                -1.0F,
+                1.0F,
+                1.0F,
                 1.0F
         );
 
