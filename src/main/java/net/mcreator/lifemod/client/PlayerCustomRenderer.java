@@ -2,16 +2,20 @@ package net.mcreator.lifemod.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.renderer.GeoObjectRenderer;
 
 public class PlayerCustomRenderer extends GeoObjectRenderer<PlayerModelAnimatable> {
 
-    public PlayerCustomRenderer(boolean isMale) {
-        super(new PlayerCustomModel(isMale));
+    private final boolean male;
+
+    public PlayerCustomRenderer(boolean male) {
+        super(new PlayerCustomModel(male));
+        this.male = male;
     }
 
-    public void renderModel(
+    public void renderPlayerModel(
             PlayerModelAnimatable animatable,
             PoseStack poseStack,
             MultiBufferSource bufferSource,
@@ -21,30 +25,25 @@ public class PlayerCustomRenderer extends GeoObjectRenderer<PlayerModelAnimatabl
     ) {
         animatable.updateMovement(partialTick);
 
+        ResourceLocation texture = male
+                ? new ResourceLocation(
+                        "life_mod",
+                        "textures/entity/custom_male.png"
+                )
+                : new ResourceLocation(
+                        "life_mod",
+                        "textures/entity/custom_female.png"
+                );
+
+        RenderType renderType = RenderType.entityTranslucent(texture);
+
         super.render(
                 poseStack,
                 animatable,
                 bufferSource,
-                RenderTypeFor(animatable),
+                renderType,
                 packedLight,
                 packedOverlay
         );
-    }
-
-    private net.minecraft.client.renderer.RenderType RenderTypeFor(
-            PlayerModelAnimatable animatable
-    ) {
-        ResourceLocation texture =
-                animatable.isMale()
-                        ? new ResourceLocation(
-                                "life_mod",
-                                "textures/entity/custom_male.png"
-                        )
-                        : new ResourceLocation(
-                                "life_mod",
-                                "textures/entity/custom_female.png"
-                        );
-
-        return net.minecraft.client.renderer.RenderType.entityTranslucent(texture);
     }
 }
