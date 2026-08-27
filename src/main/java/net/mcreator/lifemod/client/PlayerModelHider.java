@@ -1,4 +1,3 @@
-```java
 package net.mcreator.lifemod.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -456,4 +455,3 @@ public class PlayerModelHider {
                 oldState.leftPants;
     }
 }
-```
