@@ -21,32 +21,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class PlayerModelHider {
 
-    // =========================================================
-    // CUSTOM RENDERERLAR
-    // =========================================================
-
     private static final PlayerCustomRenderer MALE_RENDERER =
             new PlayerCustomRenderer(true);
 
     private static final PlayerCustomRenderer FEMALE_RENDERER =
             new PlayerCustomRenderer(false);
 
-
-    // =========================================================
-    // ANIMATABLE CACHE
-    // =========================================================
-
     private static final Map<UUID, PlayerModelAnimatable> ANIMATABLES =
             new ConcurrentHashMap<>();
 
-
-    // =========================================================
-    // PLAYER MODEL GÖRÜNÜRLÜK DURUMUNU SAKLA
-    // =========================================================
-
     private static final Map<UUID, ModelVisibilityState> VISIBILITY_STATES =
             new ConcurrentHashMap<>();
-
 
     private static class ModelVisibilityState {
 
@@ -70,11 +55,6 @@ public class PlayerModelHider {
         boolean leftPants;
     }
 
-
-    // =========================================================
-    // RENDER PRE
-    // =========================================================
-
     @SubscribeEvent
     public static void onRenderPlayerPre(
             RenderPlayerEvent.Pre event
@@ -86,11 +66,6 @@ public class PlayerModelHider {
             return;
         }
 
-
-        // =====================================================
-        // GENDER BİLGİSİ
-        // =====================================================
-
         LifeModModVariables.PlayerVariables variables =
                 clientPlayer.getCapability(
                         LifeModModVariables.PLAYER_VARIABLES_CAPABILITY,
@@ -101,7 +76,6 @@ public class PlayerModelHider {
             return;
         }
 
-
         /*
          * Gender:
          *
@@ -109,32 +83,19 @@ public class PlayerModelHider {
          * 1 = erkek
          * 2 = kadın
          */
-
         int gender = (int) variables.gender;
 
         if (gender == 0) {
             return;
         }
 
-
         boolean male = gender == 1;
-
-
-        // =====================================================
-        // PLAYER RENDERER
-        // =====================================================
 
         PlayerRenderer renderer =
                 (PlayerRenderer) event.getRenderer();
 
-
         PlayerModel<AbstractClientPlayer> model =
                 renderer.getModel();
-
-
-        // =====================================================
-        // MEVCUT MODEL GÖRÜNÜRLÜKLERİNİ SAKLA
-        // =====================================================
 
         UUID uuid = clientPlayer.getUUID();
 
@@ -162,50 +123,25 @@ public class PlayerModelHider {
 
         VISIBILITY_STATES.put(uuid, oldState);
 
-
-        // =====================================================
-        // VANILLA MODELİ AYARLA
-        // =====================================================
-
         /*
-         * KAFA:
+         * VANILLA KAFA
          *
-         * Vanilla kafa kesinlikle görünür.
+         * Kafa tamamen vanilla Minecraft tarafından
+         * çizilecek.
          */
-
         model.head.visible = true;
         model.hat.visible = true;
 
-
         /*
-         * GÖVDE:
-         *
-         * Custom model gövdeyi çizdiği için vanilla gövdeyi
-         * gizliyoruz.
+         * Vanilla gövde ve uzuvları kapat.
          */
-
         model.body.visible = false;
-
-
-        /*
-         * KOLLAR
-         */
 
         model.rightArm.visible = false;
         model.leftArm.visible = false;
 
-
-        /*
-         * BACAKLAR
-         */
-
         model.rightLeg.visible = false;
         model.leftLeg.visible = false;
-
-
-        /*
-         * PLAYER CLOTHING / ARMOR-LIKE LAYERS
-         */
 
         model.jacket.visible = false;
 
@@ -215,78 +151,71 @@ public class PlayerModelHider {
         model.rightPants.visible = false;
         model.leftPants.visible = false;
 
-
-        // =====================================================
-        // ANIMATABLE
-        // =====================================================
-
+        /*
+         * Animatable oluştur / güncelle.
+         */
         PlayerModelAnimatable animatable =
                 ANIMATABLES.compute(
                         uuid,
                         (id, old) -> {
 
                             if (old == null) {
-
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
                                 );
                             }
-
 
                             if (old.isMale() != male) {
-
                                 return new PlayerModelAnimatable(
                                         clientPlayer,
                                         male
                                 );
                             }
-
 
                             return old;
                         }
                 );
 
-
-        // =====================================================
-        // HAREKET BİLGİSİ
-        // =====================================================
-
         float partialTick =
                 event.getPartialTick();
 
-        animatable.updateMovement(
-                partialTick
-        );
-
-
-        // =====================================================
-        // POSE STACK
-        // =====================================================
+        animatable.updateMovement(partialTick);
 
         PoseStack poseStack =
                 event.getPoseStack();
 
-
         poseStack.pushPose();
 
-
-        // =====================================================
-        // ÖNEMLİ:
-        //
-        // BURADA ARTIK bodyYaw UYGULAMIYORUZ.
-        //
-        // RenderPlayerEvent.Pre'nin PoseStack'i zaten
-        // PlayerRenderer tarafından oyuncunun pozisyonu ve
-        // yönü için hazırlanmış durumda.
-        // =====================================================
-
-
-        // =====================================================
-        // CUSTOM MODELİ ÇİZ
-        // =====================================================
+        /*
+         * =====================================================
+         * MODEL POZİSYONU
+         * =====================================================
+         *
+         * Erkek Blockbench root:
+         *
+         * X = -4 px
+         * Y =  0 px
+         * Z = +1.7 px
+         *
+         * Minecraft merkezine oturtmak için ters offset:
+         *
+         * X = +4 px
+         * Z = -1.7 px
+         *
+         * 16 px = 1 Minecraft block.
+         *
+         * Kadın modelinin root'u zaten 0,0,0 olduğu için
+         * kadın modele bu offset uygulanmıyor.
+         */
 
         if (male) {
+
+            poseStack.translate(
+                    4.0D / 16.0D,
+                    0.0D,
+                    -1.7D / 16.0D
+            );
 
             MALE_RENDERER.renderPlayerModel(
                     animatable,
@@ -309,18 +238,8 @@ public class PlayerModelHider {
             );
         }
 
-
-        // =====================================================
-        // POSE STACK GERİ AL
-        // =====================================================
-
         poseStack.popPose();
     }
-
-
-    // =========================================================
-    // RENDER POST
-    // =========================================================
 
     @SubscribeEvent
     public static void onRenderPlayerPost(
@@ -333,32 +252,25 @@ public class PlayerModelHider {
             return;
         }
 
-
         UUID uuid =
                 clientPlayer.getUUID();
 
-
         ModelVisibilityState oldState =
                 VISIBILITY_STATES.remove(uuid);
-
 
         if (oldState == null) {
             return;
         }
 
-
         PlayerRenderer renderer =
                 (PlayerRenderer) event.getRenderer();
-
 
         PlayerModel<AbstractClientPlayer> model =
                 renderer.getModel();
 
-
-        // =====================================================
-        // MODEL GÖRÜNÜRLÜKLERİNİ GERİ YÜKLE
-        // =====================================================
-
+        /*
+         * Vanilla model görünürlüklerini eski haline getir.
+         */
         model.head.visible =
                 oldState.head;
 
